@@ -1,20 +1,16 @@
-import { Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar.jsx";
-import Footer from "./components/Footer.jsx";
-import Home from "./pages/Home.jsx";
-import MonteSeuPage from "./pages/MonteSeuPage.jsx";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import MonteSeu from './pages/MonteSeu';
 
-export default function App() {
+function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/monte-o-seu" element={<MonteSeuPage />} />
-        </Routes>
-      </main>
-      <Footer />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/monte-seu" element={<MonteSeu />} />
+      </Routes>
+    </Router>
   );
 }
+
+export default App;
