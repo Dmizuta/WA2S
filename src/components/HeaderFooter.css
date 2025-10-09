@@ -1,0 +1,49 @@
+/* ===============================
+   HEADER (dark + semi-transparent)
+================================== */
+.site-header {
+  background: rgba(15, 15, 15, 0.85);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 40px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.site-header .logo {
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: #f5f5f5;
+  letter-spacing: 0.5px;
+}
+
+.site-header nav a {
+  margin-left: 24px;
+  text-decoration: none;
+  color: #ddd;
+  font-weight: 500;
+  transition: color 0.25s ease;
+}
+
+.site-header nav a:hover {
+  color: #ffffff;
+}
+
+/* ===============================
+   FOOTER
+================================== */
+.site-footer {
+  background: #111;
+  color: #bbb;
+  text-align: center;
+  padding: 25px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+  font-size: 0.9rem;
+  margin-top: 100px;
+  letter-spacing: 0.3px;
+}

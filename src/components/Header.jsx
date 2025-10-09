@@ -1,14 +1,13 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import "./HeaderFooter.css";
 
 export default function Header() {
   return (
-    <header className="header">
-      <div className="header-logo">A2 Sports</div>
-
-      <nav className="header-nav">
+    <header className="site-header">
+      <div className="logo">A2 Sports</div>
+      <nav>
         <Link to="/">Início</Link>
-        <Link to="/monte-seu">Monte o Seu</Link>
-        <a href="#contato">Contato</a>
+        <Link to="/monte-seu">Monte o seu</Link>
       </nav>
     </header>
   );

@@ -1,6 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import MonteSeu from './pages/MonteSeu';
+//import CategorySelector from './components/CategorySelector';
+
+
 
 function App() {
   return (
