@@ -100,7 +100,9 @@ export default function MonteSeu() {
             <h2>Visualização final</h2>
             <div className="preview">
               <img
-                src={`/images/models/${category}/${subcategory}-${color}.png`}
+                //src={`/images/models/${category}/${subcategory}-${color}.png`}
+                src={`/images/colors/${category}/${subcategory}-${color}.png`}
+
                 alt={`${subcategory} ${color}`}
                 onError={(e) => {
                   // fallback if color image not found

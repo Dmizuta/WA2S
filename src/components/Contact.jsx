@@ -13,7 +13,7 @@ export default function Contact() {
           💬 WhatsApp
         </a>
         <a
-          href="https://instagram.com/a2sports"
+          href="https://instagram.com/a2.sports"
           target="_blank"
           rel="noopener noreferrer"
           className="btn-instagram"
