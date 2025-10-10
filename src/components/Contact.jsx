@@ -5,7 +5,7 @@ export default function Contact() {
       <p>Fale com a gente!</p>
       <div className="contact-buttons">
         <a
-          href="https://wa.me/5511999999999"
+          href="https://wa.me/5511972657867"
           target="_blank"
           rel="noopener noreferrer"
           className="btn-whatsapp"
@@ -13,7 +13,9 @@ export default function Contact() {
           💬 WhatsApp
         </a>
         <a
-          href="https://instagram.com/a2.sports"
+          href="https://instagram.com/2a.sports"
+
+          
           target="_blank"
           rel="noopener noreferrer"
           className="btn-instagram"

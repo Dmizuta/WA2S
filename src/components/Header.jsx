@@ -4,7 +4,7 @@ import "./HeaderFooter.css";
 export default function Header() {
   return (
     <header className="site-header">
-      <div className="logo">A2 Sports</div>
+      <div className="logo">2A Sports</div>
       <nav>
         <Link to="/">Início</Link>
         <Link to="/monte-seu">Monte o seu</Link>
