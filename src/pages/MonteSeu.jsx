@@ -69,29 +69,45 @@ export default function MonteSeu() {
           </div>
         )}
 
-        {/* STEP 3: Color */}
+        {/* STEP 3: Color selection with centered model */}
         {subcategory && !color && (
           <div className="funnel-step fade-in">
             <button className="back" onClick={() => handleBack("subcategory")}>
               ← Voltar
             </button>
             <h2>Escolha uma cor</h2>
-            <div className="grid colors">
-              {products[category]
-                .subcategories.find((s) => s.id === subcategory)
-                .colors.map((c) => (
-                  <div
-                    key={c}
-                    className="color-circle"
-                    style={{ backgroundColor: c }}
-                    onClick={() => setColor(c)}
-                  ></div>
-                ))}
+
+            <div className="color-selection">
+              {/* Centered model */}
+              <div className="model-preview">
+                <img
+                  src={
+                    products[category].subcategories.find(
+                      (s) => s.id === subcategory
+                    ).img
+                  }
+                  alt={subcategory}
+                />
+              </div>
+
+              {/* Color circles below */}
+              <div className="color-options">
+                {products[category]
+                  .subcategories.find((s) => s.id === subcategory)
+                  .colors.map((c) => (
+                    <div
+                      key={c}
+                      className="color-circle"
+                      style={{ backgroundColor: c }}
+                      onClick={() => setColor(c)}
+                    ></div>
+                  ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* STEP 4: Preview */}
+        {/* STEP 4: Final Preview */}
         {color && (
           <div className="funnel-step fade-in">
             <button className="back" onClick={() => handleBack("color")}>
@@ -100,16 +116,12 @@ export default function MonteSeu() {
             <h2>Visualização final</h2>
             <div className="preview">
               <img
-                //src={`/images/models/${category}/${subcategory}-${color}.png`}
                 src={`/images/colors/${category}/${subcategory}-${color}.png`}
-
                 alt={`${subcategory} ${color}`}
                 onError={(e) => {
-                  // fallback if color image not found
-                  e.target.src =
-                    products[category].subcategories.find(
-                      (s) => s.id === subcategory
-                    ).img;
+                  e.target.src = products[category].subcategories.find(
+                    (s) => s.id === subcategory
+                  ).img;
                 }}
               />
               <p>

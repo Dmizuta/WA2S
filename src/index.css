@@ -308,3 +308,101 @@ button.back:hover,
 .fade-in {
   animation: fadein 0.5s ease;
 }
+
+
+/* ========== GENERAL LAYOUT FIXES ========== */
+
+/* Center everything inside each step */
+.funnel-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Grid container centered */
+.funnel-step .grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+/* Make each card centered and consistent */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  padding: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+}
+
+/* Images inside cards */
+.card img {
+  max-width: 220px;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Preview and model images centered */
+.preview img,
+.model-preview img {
+  display: block;
+  margin: 0 auto;
+  max-width: 280px;
+  width: 100%;
+  height: auto;
+}
+
+/* Step titles and texts centered */
+.funnel-step h2,
+.funnel-step p {
+  text-align: center;
+}
+
+/* Keep color selection centered */
+.color-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+/* Row of color circles */
+.color-options {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Circle styles */
+.color-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #ccc;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.color-circle:hover {
+  transform: scale(1.1);
+  border-color: #000;
+}
