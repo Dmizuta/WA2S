@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "fabric": "^6.7.1",
+    "fabric-pure-browser": "^5.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.4"

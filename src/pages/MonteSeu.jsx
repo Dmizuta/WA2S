@@ -9,6 +9,9 @@ export default function MonteSeu() {
   const [subcategory, setSubcategory] = useState(null);
   const [color, setColor] = useState(null);
 
+  // ------------------------
+  // NAVIGATION CONTROLS
+  // ------------------------
   const handleBack = (level) => {
     if (level === "category") setCategory(null);
     if (level === "subcategory") setSubcategory(null);
@@ -21,6 +24,38 @@ export default function MonteSeu() {
     setColor(null);
   };
 
+  // ------------------------
+  // FINAL PRODUCT LOGIC
+  // ------------------------
+  let finalProduct = null;
+  let categoryData = null;
+  let subcategoryData = null;
+  let imagePath = null;
+
+  if (color) {
+    categoryData = products[category];
+    subcategoryData = categoryData.subcategories.find(
+      (s) => s.id === subcategory
+    );
+    imagePath = `/images/colors/${category}/${subcategory}-${color}.png`;
+
+    finalProduct = {
+      category: categoryData.name,
+      model: subcategoryData.name,
+      color,
+      image: imagePath,
+    };
+  }
+
+  const handleOpenInCanvas = () => {
+    if (!finalProduct) return;
+    localStorage.setItem("finalProduct", JSON.stringify(finalProduct));
+    window.location.href = "/canvas"; // redirect to CanvasEditor
+  };
+
+  // ------------------------
+  // RENDER
+  // ------------------------
   return (
     <>
       <Header />
@@ -114,29 +149,29 @@ export default function MonteSeu() {
               ← Voltar
             </button>
             <h2>Visualização final</h2>
+
             <div className="preview">
               <img
-                src={`/images/colors/${category}/${subcategory}-${color}.png`}
+                src={imagePath}
                 alt={`${subcategory} ${color}`}
                 onError={(e) => {
-                  e.target.src = products[category].subcategories.find(
-                    (s) => s.id === subcategory
-                  ).img;
+                  e.target.src = subcategoryData.img;
                 }}
+                className="cursor-pointer hover:scale-105 transition-transform"
+                onClick={handleOpenInCanvas}
               />
               <p>
-                {products[category].name} –{" "}
-                {
-                  products[category].subcategories.find(
-                    (s) => s.id === subcategory
-                  ).name
-                }{" "}
-                ({color})
+                {categoryData.name} – {subcategoryData.name} ({color})
               </p>
+
+              <button className="restart" onClick={reset}>
+                🔁 Recomeçar
+              </button>
+
+              <button className="edit" onClick={handleOpenInCanvas}>
+                🎨 Editar no Canvas
+              </button>
             </div>
-            <button className="restart" onClick={reset}>
-              🔁 Recomeçar
-            </button>
           </div>
         )}
       </div>
