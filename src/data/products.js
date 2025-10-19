@@ -1,29 +1,43 @@
+// src/data/products.js
 export const products = {
-  tshirts: {
-    name: "T-Shirts",
-    img: "/images/categories/tshirts.png",
+  fardamento: {
+    name: "Fardamento",
+    img: "/images/categories/fardamento.png",
     subcategories: [
-      { id: "a", name: "Style A", img: "/images/models/tshirts/a.png", colors: ["red","blue","yellow"] },
-      { id: "b", name: "Style B", img: "/images/models/tshirts/b.png", colors: ["red","blue","yellow"] },
-     // { id: "c", name: "Style C", img: "/images/models/tshirts/c.png", colors: ["green","yellow"] },
-     // { id: "d", name: "Style D", img: "/images/models/tshirts/d.png", colors: ["gray","red"] },
-     // { id: "e", name: "Style E", img: "/images/models/tshirts/e.png", colors: ["black","orange"] },
-    ]
+      {
+        id: "completo-a",
+        name: "Fardamento Completo A",
+        img: "/images/models/fardamento-completo-a.png",
+      },
+      {
+        id: "camisa-b",
+        name: "Camisa B",
+        img: "/images/models/camisa-b.png",
+      },
+    ],
   },
-  shorts: {
-    name: "Shorts",
-    img: "/images/categories/shorts.png",
+
+  agasalho: {
+    name: "Agasalho completo",
+    img: "/images/categories/agasalho.png",
     subcategories: [
-      { id: "a", name: "Short A", img: "/images/models/shorts/a.png", colors: ["red","blue","yellow"] },
-      { id: "b", name: "Short B", img: "/images/models/shorts/b.png", colors: ["red","blue","yellow"] },
-    ]
+      {
+        id: "agasalho-a",
+        name: "Agasalho A",
+        img: "/images/models/agasalho-a.png",
+      },
+    ],
   },
-  hoodies: {
-    name: "Hoodies",
-    img: "/images/categories/hoodies.png",
+
+  blusa: {
+    name: "Blusa corta vento",
+    img: "/images/categories/blusa.png",
     subcategories: [
-      { id: "a", name: "Hoodie A", img: "/images/models/hoodies/a.png", colors: ["red","blue","yellow"] },
-      { id: "b", name: "Hoodie B", img: "/images/models/hoodies/b.png", colors: ["red","blue","yellow"] },
-    ]
-  }
+      {
+        id: "blusa-a",
+        name: "Blusa A",
+        img: "/images/models/blusa-a.png",
+      },
+    ],
+  },
 };

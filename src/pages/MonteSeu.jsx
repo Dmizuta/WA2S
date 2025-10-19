@@ -3,25 +3,46 @@ import { products } from "../data/products";
 import "../index.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { useNavigate } from "react-router-dom";
 
 export default function MonteSeu() {
   const [category, setCategory] = useState(null);
   const [subcategory, setSubcategory] = useState(null);
-  const [color, setColor] = useState(null);
+  const navigate = useNavigate();
 
   // ------------------------
   // NAVIGATION CONTROLS
   // ------------------------
   const handleBack = (level) => {
-    if (level === "category") setCategory(null);
-    if (level === "subcategory") setSubcategory(null);
-    if (level === "color") setColor(null);
+    if (level === "category") {
+      setCategory(null);
+    }
+
+    if (level === "subcategory") {
+      if (category === "agasalho" || category === "blusa") {
+        setSubcategory(null);
+        setCategory(null);
+      } else {
+        setSubcategory(null);
+      }
+    }
   };
 
   const reset = () => {
     setCategory(null);
     setSubcategory(null);
-    setColor(null);
+  };
+
+  const autoSkipCategory = (key) => {
+    const selectedCategory = products[key];
+    const subs = selectedCategory.subcategories;
+
+    if (subs.length === 1 && (key === "agasalho" || key === "blusa")) {
+      setCategory(key);
+      setSubcategory(subs[0].id);
+    } else {
+      setCategory(key);
+    }
   };
 
   // ------------------------
@@ -30,27 +51,25 @@ export default function MonteSeu() {
   let finalProduct = null;
   let categoryData = null;
   let subcategoryData = null;
-  let imagePath = null;
 
-  if (color) {
+  if (subcategory) {
     categoryData = products[category];
     subcategoryData = categoryData.subcategories.find(
       (s) => s.id === subcategory
     );
-    imagePath = `/images/colors/${category}/${subcategory}-${color}.png`;
 
     finalProduct = {
       category: categoryData.name,
       model: subcategoryData.name,
-      color,
-      image: imagePath,
+      image: subcategoryData.img,
+      id: subcategoryData.id,
     };
   }
 
   const handleOpenInCanvas = () => {
     if (!finalProduct) return;
     localStorage.setItem("finalProduct", JSON.stringify(finalProduct));
-    window.location.href = "/canvas"; // redirect to CanvasEditor
+    navigate("/monte-fabric", { state: finalProduct });
   };
 
   // ------------------------
@@ -72,7 +91,7 @@ export default function MonteSeu() {
                 <div
                   key={key}
                   className="card"
-                  onClick={() => setCategory(key)}
+                  onClick={() => autoSkipCategory(key)}
                 >
                   <img src={products[key].img} alt={products[key].name} />
                   <p>{products[key].name}</p>
@@ -85,9 +104,6 @@ export default function MonteSeu() {
         {/* STEP 2: Subcategory */}
         {category && !subcategory && (
           <div className="funnel-step fade-in">
-            <button className="back" onClick={() => handleBack("category")}>
-              ← Voltar
-            </button>
             <h2>Escolha o modelo</h2>
             <div className="grid">
               {products[category].subcategories.map((sub) => (
@@ -101,76 +117,46 @@ export default function MonteSeu() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* STEP 3: Color selection with centered model */}
-        {subcategory && !color && (
-          <div className="funnel-step fade-in">
-            <button className="back" onClick={() => handleBack("subcategory")}>
-              ← Voltar
-            </button>
-            <h2>Escolha uma cor</h2>
-
-            <div className="color-selection">
-              {/* Centered model */}
-              <div className="model-preview">
-                <img
-                  src={
-                    products[category].subcategories.find(
-                      (s) => s.id === subcategory
-                    ).img
-                  }
-                  alt={subcategory}
-                />
-              </div>
-
-              {/* Color circles below */}
-              <div className="color-options">
-                {products[category]
-                  .subcategories.find((s) => s.id === subcategory)
-                  .colors.map((c) => (
-                    <div
-                      key={c}
-                      className="color-circle"
-                      style={{ backgroundColor: c }}
-                      onClick={() => setColor(c)}
-                    ></div>
-                  ))}
-              </div>
+            <div className="flex justify-center mt-6">
+              <button className="back" onClick={() => handleBack("category")}>
+                ← Voltar
+              </button>
             </div>
           </div>
         )}
 
-        {/* STEP 4: Final Preview */}
-        {color && (
+        {/* STEP 3: Final Preview */}
+        {subcategory && (
           <div className="funnel-step fade-in">
-            <button className="back" onClick={() => handleBack("color")}>
-              ← Voltar
-            </button>
             <h2>Visualização final</h2>
 
             <div className="preview">
               <img
-                src={imagePath}
-                alt={`${subcategory} ${color}`}
+                src={subcategoryData.img}
+                alt={subcategoryData.name}
                 onError={(e) => {
-                  e.target.src = subcategoryData.img;
+                  e.target.src = "/images/fallback.png";
                 }}
                 className="cursor-pointer hover:scale-105 transition-transform"
                 onClick={handleOpenInCanvas}
               />
               <p>
-                {categoryData.name} – {subcategoryData.name} ({color})
+                {categoryData.name} – {subcategoryData.name}
               </p>
 
-              <button className="restart" onClick={reset}>
-                🔁 Recomeçar
-              </button>
+              <div className="flex flex-col items-center gap-4 mt-4">
+                <button
+                  className="back"
+                  onClick={() => handleBack("subcategory")}
+                >
+                  ← Voltar
+                </button>
 
-              <button className="edit" onClick={handleOpenInCanvas}>
-                🎨 Editar no Canvas
-              </button>
+                <button className="restart" onClick={reset}>
+                  🔁 Recomeçar
+                </button>
+              </div>
             </div>
           </div>
         )}
