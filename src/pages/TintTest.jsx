@@ -12,7 +12,6 @@ export default function TintTest() {
     });
     setCanvas(c);
 
-    // 🟢 Load your white mask (can be any white-on-transparent PNG)
     fabric.Image.fromURL("/images/test/mask.png", (img) => {
       img.set({
         left: c.width / 2,
@@ -21,11 +20,10 @@ export default function TintTest() {
         originY: "center",
         selectable: false,
       });
-      c.add(img);
-      c.renderAll();
 
-      // store for recoloring
+      c.add(img);
       c.mask = img;
+      c.renderAll();
     });
 
     return () => c.dispose();
@@ -35,10 +33,14 @@ export default function TintTest() {
     const color = e.target.value;
     if (!canvas?.mask) return;
 
-    // 🟡 Apply tint filter
-    canvas.mask.filters = [
-      new fabric.Image.filters.Tint({ color, opacity: 1 }),
-    ];
+    // ✅ use BlendColor filter instead of Tint
+    const filter = new fabric.Image.filters.BlendColor({
+      color,
+      mode: "multiply", // try also "tint" or "overlay" if you want
+      alpha: 1,
+    });
+
+    canvas.mask.filters = [filter];
     canvas.mask.applyFilters();
     canvas.renderAll();
   };
@@ -46,7 +48,12 @@ export default function TintTest() {
   return (
     <div className="flex flex-col items-center gap-4 py-8">
       <h1 className="text-xl font-bold">🎨 Fabric.js Tint Test</h1>
-      <canvas ref={canvasRef} width={400} height={400} className="border rounded-lg shadow-lg" />
+      <canvas
+        ref={canvasRef}
+        width={400}
+        height={400}
+        className="border rounded-lg shadow-lg"
+      />
       <input type="color" onChange={handleColor} className="w-24 h-10" />
     </div>
   );
