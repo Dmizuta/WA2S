@@ -36,7 +36,7 @@ export default function TintTest() {
     // ✅ use BlendColor filter instead of Tint
     const filter = new fabric.Image.filters.BlendColor({
       color,
-      mode: "multiply", // try also "tint" or "overlay" if you want
+      mode: "tint", // try also "tint" or "overlay" if you want
       alpha: 1,
     });
 
