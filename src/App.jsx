@@ -4,6 +4,8 @@ import MonteSeu from "./pages/MonteSeu";
 import MonteFabric from "./pages/MonteFabric";
 import Canvas from "./pages/Canvas"; // ✅ new import
 
+import TintTest from "./pages/TintTest";
+
 function App() {
   return (
     <Router>
@@ -12,6 +14,7 @@ function App() {
         <Route path="/monte-seu" element={<MonteSeu />} />
         <Route path="/monte-fabric" element={<MonteFabric />} />
         <Route path="/canvas" element={<Canvas />} /> {/* ✅ new */}
+        <Route path="/tint-test" element={<TintTest />} />
       </Routes>
     </Router>
   );
