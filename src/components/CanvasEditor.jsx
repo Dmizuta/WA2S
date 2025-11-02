@@ -6,7 +6,7 @@ export default function CanvasEditor() {
   const [canvas, setCanvas] = useState(null);
   const [layers, setLayers] = useState({ base: null, pattern: null, logo: null });
   const [colors, setColors] = useState({
-    base: "#ffffff",
+    base: "#948e8eff",
     pattern: "#00aaff",
     logo: "#ff9900",
   });
@@ -20,7 +20,7 @@ export default function CanvasEditor() {
     const fabricCanvas = new fabric.Canvas(el, {
       width: 600,
       height: 600,
-      backgroundColor: "#f8f8f8",
+      backgroundColor: "#ffffffff",
       selection: false,
     });
 
@@ -102,7 +102,7 @@ export default function CanvasEditor() {
       img.applyFilters();
     };
 
-    applyTint(layers.base, colors.base, "multiply", 0.35);
+    applyTint(layers.base, colors.base, "multiply", 1);
     applyTint(layers.pattern, colors.pattern, "tint", 1);
     applyTint(layers.logo, colors.logo, "tint", 1);
     canvas.renderAll();
