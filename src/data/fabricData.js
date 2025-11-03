@@ -1,8 +1,8 @@
 export const fabricData = {
   fardamento: {
     models: [
-      { id: "fard1", name: "Fardamento Modelo 1" },
-      { id: "fard2", name: "Fardamento Modelo 2" },
+      { id: "fard1", name: "Fardamento Modelo 1", img: "/images/models/fardamento-1.png" },
+      { id: "fard2", name: "Fardamento Modelo 2", img: "/images/models/fardamento-2.png" },
     ],
     arts: {
       fard1: Array.from({ length: 10 }, (_, i) => ({
@@ -17,10 +17,11 @@ export const fabricData = {
   },
 
   camisa: {
-    models: [
-      { id: "cam1", name: "Camisa Modelo 1" },
-      { id: "cam2", name: "Camisa Modelo 2" },
+     models: [
+      { id: "cam1", name: "Camisa Modelo 1", img: "/images/models/camisa-1.png" },
+      { id: "cam2", name: "Camisa Modelo 2", img: "/images/models/camisa-2.png" },
     ],
+   
     arts: {
       cam1: Array.from({ length: 10 }, (_, i) => ({
         id: `cam1_art${i + 1}`,
@@ -95,10 +96,12 @@ export const fabricData = {
   },
 
   blusa: {
-    models: [
-      { id: "blu1", name: "Blusa Modelo 1" },
-      { id: "blu2", name: "Blusa Modelo 2" },
+
+     models: [
+      { id: "blu1", name: "Blusa Modelo 1", img: "/images/models/blusa-1.png" },
+      { id: "blu2", name: "Blusa Modelo 2", img: "/images/models/blusa-2.png" },
     ],
+   
     arts: {
       blu1: Array.from({ length: 10 }, (_, i) => ({
         id: `blu1_art${i + 1}`,

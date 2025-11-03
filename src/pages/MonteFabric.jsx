@@ -1,3 +1,4 @@
+// src/pages/MonteFabric.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
@@ -35,13 +36,17 @@ export default function MonteFabric() {
       setArts([]);
       return;
     }
+
     const modelArts = fabricData[product.categoryKey]?.arts[selectedModel] || [];
     setArts(modelArts);
     setSelectedArt(""); // reset art when model changes
   }, [selectedModel, product]);
 
+  // 🔙 Fixed return behavior (forces full reset of MonteSeu)
   const handleReturn = () => {
-    navigate("/monte-seu");
+    localStorage.removeItem("finalProduct");
+    navigate("/monte-seu", { replace: true });
+    window.location.reload(); // ✅ ensures MonteSeu resets correctly
   };
 
   return (
