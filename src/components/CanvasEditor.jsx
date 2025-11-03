@@ -1,138 +1,164 @@
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric-pure-browser";
+import { fabricData } from "../data/fabricData";
 
-export default function CanvasEditor() {
+export default function CanvasEditor({ model, art }) {
   const canvasRef = useRef(null);
-  const [canvas, setCanvas] = useState(null);
-  const [layers, setLayers] = useState({ base: null, pattern: null, logo: null });
+  const canvas = useRef(null);
+
+  // Store refs for tintable images
+  const baseRef = useRef(null);
+  const layerRefs = useRef([]);
+
   const [colors, setColors] = useState({
-    base: "#948e8eff",
-    pattern: "#00aaff",
-    logo: "#ff9900",
+    base: "#0e9420ff",
+    layer1: "#00aaff",
+    layer2: "#ff0000",
   });
 
-  // 1️⃣ Initialize Fabric safely
+  // 🧩 Initialize Fabric canvas once
   useEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
-    if (el._fabricInstance) return;
-
     const fabricCanvas = new fabric.Canvas(el, {
       width: 600,
       height: 600,
-      backgroundColor: "#ffffffff",
-      selection: false,
+      backgroundColor: "#f8f8f8",
     });
-
-    el._fabricInstance = fabricCanvas;
-    setCanvas(fabricCanvas);
-
-    return () => {
-      if (fabricCanvas && !fabricCanvas.disposed) {
-        try {
-          fabricCanvas.dispose();
-          fabricCanvas.disposed = true;
-        } catch (err) {
-          console.warn("🧹 dispose skipped:", err.message);
-        }
-      }
-    };
+    canvas.current = fabricCanvas;
+    return () => fabricCanvas.dispose();
   }, []);
 
-  // 2️⃣ Load base, pattern, and logo
+  // 🖼️ Load model + art layers
   useEffect(() => {
-    if (!canvas) return;
+    const c = canvas.current;
+    if (!c) return;
+    c.clear();
+    layerRefs.current = [];
+    baseRef.current = null;
 
-    canvas.clear();
+    if (!model) return;
 
-    // Base
-    fabric.Image.fromURL(
-      "/images/test/base.png",
-      (base) => {
-        base.scaleToWidth(500);
-        base.selectable = false;
-        base.evented = false;
-        canvas.add(base);
-        canvas.centerObject(base);
-        setLayers((p) => ({ ...p, base }));
-      },
-      { crossOrigin: "anonymous" }
-    );
+    // find category/model
+    let categoryKey = null;
+    let modelData = null;
+    for (const key in fabricData) {
+      const found = fabricData[key].models.find((m) => m.id === model);
+      if (found) {
+        categoryKey = key;
+        modelData = found;
+        break;
+      }
+    }
+    if (!modelData) return;
 
-    // Pattern
-    fabric.Image.fromURL(
-      "/images/test/pattern.png",
-      (pattern) => {
-        pattern.scaleToWidth(500);
-        pattern.selectable = false;
-        pattern.evented = false;
-        canvas.add(pattern);
-        canvas.centerObject(pattern);
-        setLayers((p) => ({ ...p, pattern }));
+    // 🧱 Base image
+    if (modelData.img) {
+      fabric.Image.fromURL(
+        modelData.img,
+        (img) => {
+          img.scaleToWidth(500);
+          img.selectable = false;
+          c.add(img);
+          c.centerObject(img);
+          c.renderAll();
+          baseRef.current = img;
+        },
+        { crossOrigin: "anonymous" }
+      );
+    }
 
-        // Logo (same size & position)
+    // 🖌 Art layers
+    if (art && categoryKey) {
+      const modelArts = fabricData[categoryKey].arts[model];
+      const selectedArt = modelArts?.find((a) => a.id === art);
+      if (!selectedArt?.layers) return;
+
+      selectedArt.layers.forEach((path, i) => {
         fabric.Image.fromURL(
-          "/images/test/logo.png",
-          (logoImg) => {
-            logoImg.scaleToWidth(500);
-            logoImg.selectable = false;
-            logoImg.evented = false;
-            canvas.add(logoImg);
-            canvas.centerObject(logoImg);
-            canvas.bringToFront(logoImg);
-            setLayers((p) => ({ ...p, logo: logoImg }));
-            canvas.renderAll();
+          path,
+          (img) => {
+            img.scaleToWidth(500);
+            img.selectable = false;
+            c.add(img);
+            c.centerObject(img);
+            c.renderAll();
+            layerRefs.current[i] = img;
           },
           { crossOrigin: "anonymous" }
         );
-      },
-      { crossOrigin: "anonymous" }
-    );
-  }, [canvas]);
+      });
+    }
+  }, [model, art]);
 
-  // 3️⃣ Apply tint per layer
-  useEffect(() => {
-    if (!canvas) return;
+  // 🎨 Apply tint filters whenever colors change
+  // 🎨 Apply tint filters whenever colors change
+useEffect(() => {
+  const c = canvas.current;
+  if (!c) return;
 
-    const applyTint = (img, color, mode = "tint", alpha = 1) => {
-      if (!img) return;
-      img.filters = [
-        new fabric.Image.filters.BlendColor({ color, mode, alpha }),
-      ];
-      img.applyFilters();
-    };
+  const applyTint = (img, color, strength = 1) => {
+    if (!img) return;
+    img.filters = [
+      new fabric.Image.filters.BlendColor({
+        color,
+        mode: "multiply",   // <— natural dark blending
+        alpha: strength,    // lower alpha preserves luminance
+      }),
+    ];
+    img.applyFilters();
+  };
 
-    applyTint(layers.base, colors.base, "multiply", 1);
-    applyTint(layers.pattern, colors.pattern, "tint", 1);
-    applyTint(layers.logo, colors.logo, "tint", 1);
-    canvas.renderAll();
-  }, [colors, layers, canvas]);
+  applyTint(baseRef.current, colors.base, .9);   // soft for base (keep shadows)
+  applyTint(layerRefs.current[0], colors.layer1, 0.8);
+  applyTint(layerRefs.current[1], colors.layer2, 0.8);
 
-  // 4️⃣ Render canvas + horizontal color pickers
-  const handleColorChange = (layer, newColor) =>
-    setColors((prev) => ({ ...prev, [layer]: newColor }));
+  c.renderAll();
+}, [colors]);
+
+
+  // 🎛️ UI controls
+  const handleColorChange = (key, value) =>
+    setColors((prev) => ({ ...prev, [key]: value }));
 
   return (
     <div className="flex flex-col items-center justify-center w-full">
-      <div className="relative w-[600px] h-[600px] border rounded-lg shadow-lg mb-6">
+      {/* Canvas */}
+      <div className="relative w-[600px] h-[600px] border rounded-lg shadow-lg mb-6 bg-white">
         <canvas ref={canvasRef} className="absolute top-0 left-0" />
       </div>
 
-      {/* 🎨 Horizontal layout */}
-      <div className="flex items-center justify-center gap-8">
-        {["base", "pattern", "logo"].map((layer) => (
-          <div key={layer} className="flex flex-col items-center gap-2">
-            <label className="capitalize text-gray-700 font-medium text-sm">
-              {layer}
-            </label>
-            <input
-              type="color"
-              value={colors[layer]}
-              onChange={(e) => handleColorChange(layer, e.target.value)}
-              className="w-10 h-10 cursor-pointer rounded-md border"
-            />
-          </div>
-        ))}
+      {/* Tint controls */}
+      <div className="flex flex-row gap-8">
+        <div className="flex flex-col items-center">
+          <label className="text-sm text-gray-600 mb-1">Base</label>
+          <input
+            type="color"
+            value={colors.base}
+            onChange={(e) => handleColorChange("base", e.target.value)}
+            className="w-10 h-10 border rounded cursor-pointer"
+          />
+        </div>
+
+        <div className="flex flex-col items-center">
+          <label className="text-sm text-gray-600 mb-1">Layer 1</label>
+          <input
+            type="color"
+            value={colors.layer1}
+            onChange={(e) => handleColorChange("layer1", e.target.value)}
+            className="w-10 h-10 border rounded cursor-pointer"
+          />
+        </div>
+
+        <div className="flex flex-col items-center">
+          <label className="text-sm text-gray-600 mb-1">Layer 2</label>
+          <input
+            type="color"
+            value={colors.layer2}
+            onChange={(e) => handleColorChange("layer2", e.target.value)}
+            className="w-10 h-10 border rounded cursor-pointer"
+          />
+        </div>
       </div>
     </div>
   );

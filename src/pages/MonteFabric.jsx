@@ -1,18 +1,47 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CanvasEditor from "../components/CanvasEditor";
-import ModelSelector from "../components/ModelSelector";
-import LayerSelector from "../components/LayerSelector";
-import ArtList from "../components/ArtList";
-import ColorPalette from "../components/ColorPalette";
 import UploadLogo from "../components/UploadLogo";
+import ModelSelector from "../components/ModelSelector";
+import ArtList from "../components/ArtList";
+import { fabricData } from "../data/fabricData";
 
 export default function MonteFabric() {
   const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [models, setModels] = useState([]);
+  const [arts, setArts] = useState([]);
+  const [selectedModel, setSelectedModel] = useState("");
+  const [selectedArt, setSelectedArt] = useState("");
+
+  // 🧠 Load product from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("finalProduct");
+    if (!saved) return;
+    const parsed = JSON.parse(saved);
+    const categoryKey = parsed.categoryKey?.toLowerCase().trim();
+
+    if (fabricData[categoryKey]) {
+      setProduct({ ...parsed, categoryKey });
+      setModels(fabricData[categoryKey].models);
+    }
+  }, []);
+
+  // 🎨 Update arts when model changes
+  useEffect(() => {
+    if (!product?.categoryKey || !selectedModel) {
+      setArts([]);
+      return;
+    }
+    const modelArts = fabricData[product.categoryKey]?.arts[selectedModel] || [];
+    setArts(modelArts);
+    setSelectedArt(""); // reset art when model changes
+  }, [selectedModel, product]);
 
   const handleReturn = () => {
-    navigate("/monte-seu"); // ← your MonteSeu route
+    navigate("/monte-seu");
   };
 
   return (
@@ -22,27 +51,35 @@ export default function MonteFabric() {
       <main className="flex flex-1 gap-6 p-6">
         {/* LEFT PANEL */}
         <aside className="w-1/4 flex flex-col gap-4">
-          <section className="bg-white p-4 rounded-xl shadow">
-            <h2 className="font-semibold mb-2 text-center">Modelos</h2>
-            <ModelSelector />
-          </section>
+          {/* Model Selector */}
+          <ModelSelector
+            models={models}
+            selectedModel={selectedModel}
+            setSelectedModel={setSelectedModel}
+          />
 
-          <section className="bg-white p-4 rounded-xl shadow">
-            <h2 className="font-semibold mb-2 text-center">Camadas</h2>
-            <LayerSelector />
-          </section>
-
-          <section className="bg-white p-4 rounded-xl shadow flex-1 overflow-hidden">
-            <h2 className="font-semibold mb-2 text-center">Artes</h2>
-            <ArtList />
-          </section>
+          {/* Art List */}
+          <ArtList
+            arts={arts}
+            selectedArt={selectedArt}
+            setSelectedArt={setSelectedArt}
+          />
         </aside>
 
         {/* CENTER */}
         <section className="flex-1 flex flex-col items-center justify-center bg-white rounded-xl shadow relative overflow-hidden">
-          <h2 className="absolute top-2 text-gray-400">Selected Product</h2>
+          <h2 className="absolute top-2 text-gray-400">
+            {product
+              ? `${product.category} – ${product.model}`
+              : "Pré-visualização"}
+          </h2>
+
           <div className="flex items-center justify-center flex-1 w-full">
-            <CanvasEditor />
+            <CanvasEditor
+              baseImage={product?.image}
+              model={selectedModel}
+              art={selectedArt}
+            />
           </div>
 
           <button
@@ -58,11 +95,6 @@ export default function MonteFabric() {
           <button className="bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
             Orçamento
           </button>
-
-          <section className="bg-white p-4 rounded-xl shadow">
-            <h2 className="font-semibold mb-2 text-center">Cores</h2>
-            <ColorPalette />
-          </section>
 
           <section className="bg-white p-4 rounded-xl shadow flex flex-col items-center justify-center">
             <h2 className="font-semibold mb-2 text-center">Envie seu logo</h2>

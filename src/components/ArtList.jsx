@@ -1,14 +1,28 @@
-export default function ArtList() {
+export default function ArtList({ arts, selectedArt, setSelectedArt }) {
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto pr-1">
-      {Array.from({ length: 18 }).map((_, i) => (
-        <div
-          key={i}
-          className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-sm hover:bg-gray-300 transition cursor-pointer"
-        >
-          Art {i + 1}
-        </div>
-      ))}
-    </div>
+    <section className="bg-white p-4 rounded-xl shadow flex flex-col">
+      <h2 className="font-semibold mb-3 text-center">Artes</h2>
+      <div className="border rounded-lg h-[300px] overflow-y-auto">
+        <ul className="divide-y">
+          {arts.length > 0 ? (
+            arts.map((a) => (
+              <li
+                key={a.id}
+                className={`p-2 cursor-pointer hover:bg-blue-50 ${
+                  selectedArt === a.id ? "bg-blue-100 font-semibold" : ""
+                }`}
+                onClick={() => setSelectedArt(a.id)}
+              >
+                {a.name}
+              </li>
+            ))
+          ) : (
+            <li className="p-2 text-gray-400 italic text-center">
+              Selecione um modelo para ver as artes
+            </li>
+          )}
+        </ul>
+      </div>
+    </section>
   );
 }

@@ -1,7 +1,10 @@
 // src/data/products.js
 export const products = {
+  // -----------------------------
+  // FARDAMENTO COMPLETO
+  // -----------------------------
   fardamento: {
-    name: "Fardamento",
+    name: "Fardamento Completo",
     img: "/images/categories/fardamento.png",
     subcategories: [
       {
@@ -9,14 +12,27 @@ export const products = {
         name: "Fardamento Completo A",
         img: "/images/models/fardamento-completo-a.png",
       },
+    ],
+  },
+
+  // -----------------------------
+  // CAMISA (independent category)
+  // -----------------------------
+  camisa: {
+    name: "Camisa",
+    img: "/images/categories/camisa.png",
+    subcategories: [
       {
-        id: "camisa-b",
-        name: "Camisa B",
-        img: "/images/models/camisa-b.png",
+        id: "camisa",
+        name: "Camisa",
+        img: "/images/models/camisa.png",
       },
     ],
   },
 
+  // -----------------------------
+  // AGASALHO COMPLETO
+  // -----------------------------
   agasalho: {
     name: "Agasalho completo",
     img: "/images/categories/agasalho.png",
@@ -29,6 +45,9 @@ export const products = {
     ],
   },
 
+  // -----------------------------
+  // BLUSA CORTA-VENTO
+  // -----------------------------
   blusa: {
     name: "Blusa corta vento",
     img: "/images/categories/blusa.png",
