@@ -1,3 +1,4 @@
+// src/components/CanvasEditor.jsx
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric-pure-browser";
 import { fabricData } from "../data/fabricData";
@@ -20,13 +21,44 @@ export default function CanvasEditor({ model, art }) {
   useEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
+
     const fabricCanvas = new fabric.Canvas(el, {
       width: 600,
       height: 600,
       backgroundColor: "#f8f8f8",
+      preserveObjectStacking: true,
     });
+
     canvas.current = fabricCanvas;
-    return () => fabricCanvas.dispose();
+
+    // 🧹 Proper cleanup when leaving MonteFabric
+    return () => {
+      try {
+        fabricCanvas.dispose();
+      } catch (err) {
+        console.warn("Error disposing Fabric:", err);
+      }
+
+      // 🧹 Remove any leftover Fabric events
+      window.removeEventListener("resize", fabricCanvas.calcOffset);
+      window.removeEventListener("keydown", fabricCanvas._onKeyDown);
+      window.removeEventListener("keyup", fabricCanvas._onKeyUp);
+      window.removeEventListener("mousemove", fabricCanvas._onMouseMove);
+      window.removeEventListener("mouseup", fabricCanvas._onMouseUp);
+
+      // 🧹 Release any page locks or hidden scrolls
+      document.body.style.overflow = "";
+      document.body.style.height = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
+      document.body.classList.remove(
+        "overflow-hidden",
+        "modal-open",
+        "lock-scroll"
+      );
+
+      canvas.current = null;
+    };
   }, []);
 
   // 🖼️ Load model + art layers
@@ -92,30 +124,28 @@ export default function CanvasEditor({ model, art }) {
   }, [model, art]);
 
   // 🎨 Apply tint filters whenever colors change
-  // 🎨 Apply tint filters whenever colors change
-useEffect(() => {
-  const c = canvas.current;
-  if (!c) return;
+  useEffect(() => {
+    const c = canvas.current;
+    if (!c) return;
 
-  const applyTint = (img, color, strength = 1) => {
-    if (!img) return;
-    img.filters = [
-      new fabric.Image.filters.BlendColor({
-        color,
-        mode: "multiply",   // <— natural dark blending
-        alpha: strength,    // lower alpha preserves luminance
-      }),
-    ];
-    img.applyFilters();
-  };
+    const applyTint = (img, color, strength = 1) => {
+      if (!img) return;
+      img.filters = [
+        new fabric.Image.filters.BlendColor({
+          color,
+          mode: "multiply", // natural dark blending
+          alpha: strength,   // lower alpha preserves luminance
+        }),
+      ];
+      img.applyFilters();
+    };
 
-  applyTint(baseRef.current, colors.base, .9);   // soft for base (keep shadows)
-  applyTint(layerRefs.current[0], colors.layer1, 0.8);
-  applyTint(layerRefs.current[1], colors.layer2, 0.8);
+    applyTint(baseRef.current, colors.base, 0.9); // soft for base (keep shadows)
+    applyTint(layerRefs.current[0], colors.layer1, 0.8);
+    applyTint(layerRefs.current[1], colors.layer2, 0.8);
 
-  c.renderAll();
-}, [colors]);
-
+    c.renderAll();
+  }, [colors]);
 
   // 🎛️ UI controls
   const handleColorChange = (key, value) =>

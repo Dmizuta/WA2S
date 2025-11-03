@@ -5,7 +5,7 @@ export default function Contact() {
   const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
   return (
-    <section id="contato" className="contact">
+    <section id="contact" className="contact">
       <h2>Contato</h2>
       <p>Fale com a gente!</p>
       <div className="contact-buttons">
