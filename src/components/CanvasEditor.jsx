@@ -7,7 +7,7 @@ export default function CanvasEditor({ model, art }) {
   const canvasRef = useRef(null);
   const canvas = useRef(null);
 
-  // Store refs for tintable images
+  // Refs for images
   const baseRef = useRef(null);
   const layerRefs = useRef([]);
 
@@ -17,51 +17,42 @@ export default function CanvasEditor({ model, art }) {
     layer2: "#ff0000",
   });
 
-  // 🧩 Initialize Fabric canvas once
+  /* ======================================
+     🧱 Initialize responsive Fabric canvas
+  ====================================== */
   useEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
 
     const fabricCanvas = new fabric.Canvas(el, {
-      width: 600,
-      height: 600,
       backgroundColor: "#f8f8f8",
       preserveObjectStacking: true,
     });
-
     canvas.current = fabricCanvas;
 
-    // 🧹 Proper cleanup when leaving MonteFabric
+    // initial sizing
+    const resizeCanvas = () => {
+      const containerWidth = el.parentElement.offsetWidth;
+      const size = Math.min(containerWidth, 600); // cap at 600px
+      fabricCanvas.setWidth(size);
+      fabricCanvas.setHeight(size);
+      fabricCanvas.calcOffset();
+      fabricCanvas.renderAll();
+    };
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
     return () => {
-      try {
-        fabricCanvas.dispose();
-      } catch (err) {
-        console.warn("Error disposing Fabric:", err);
-      }
-
-      // 🧹 Remove any leftover Fabric events
-      window.removeEventListener("resize", fabricCanvas.calcOffset);
-      window.removeEventListener("keydown", fabricCanvas._onKeyDown);
-      window.removeEventListener("keyup", fabricCanvas._onKeyUp);
-      window.removeEventListener("mousemove", fabricCanvas._onMouseMove);
-      window.removeEventListener("mouseup", fabricCanvas._onMouseUp);
-
-      // 🧹 Release any page locks or hidden scrolls
-      document.body.style.overflow = "";
-      document.body.style.height = "";
-      document.documentElement.style.overflow = "";
-      document.documentElement.style.height = "";
-      document.body.classList.remove(
-        "overflow-hidden",
-        "modal-open",
-        "lock-scroll"
-      );
-
+      window.removeEventListener("resize", resizeCanvas);
+      fabricCanvas.dispose();
       canvas.current = null;
     };
   }, []);
 
-  // 🖼️ Load model + art layers
+  /* ======================================
+     🖼️ Load model + art layers responsively
+  ====================================== */
   useEffect(() => {
     const c = canvas.current;
     if (!c) return;
@@ -71,7 +62,6 @@ export default function CanvasEditor({ model, art }) {
 
     if (!model) return;
 
-    // find category/model
     let categoryKey = null;
     let modelData = null;
     for (const key in fabricData) {
@@ -84,17 +74,23 @@ export default function CanvasEditor({ model, art }) {
     }
     if (!modelData) return;
 
+    // helper: scale image to fit current canvas width
+    const scaleToCanvas = (img) => {
+      const cw = c.getWidth();
+      img.scaleToWidth(cw * 0.9); // a bit of margin
+      img.set({ left: cw / 2, top: c.getHeight() / 2, originX: "center", originY: "center" });
+    };
+
     // 🧱 Base image
     if (modelData.img) {
       fabric.Image.fromURL(
         modelData.img,
         (img) => {
-          img.scaleToWidth(500);
+          scaleToCanvas(img);
           img.selectable = false;
           c.add(img);
-          c.centerObject(img);
-          c.renderAll();
           baseRef.current = img;
+          c.renderAll();
         },
         { crossOrigin: "anonymous" }
       );
@@ -110,12 +106,11 @@ export default function CanvasEditor({ model, art }) {
         fabric.Image.fromURL(
           path,
           (img) => {
-            img.scaleToWidth(500);
+            scaleToCanvas(img);
             img.selectable = false;
             c.add(img);
-            c.centerObject(img);
-            c.renderAll();
             layerRefs.current[i] = img;
+            c.renderAll();
           },
           { crossOrigin: "anonymous" }
         );
@@ -123,7 +118,9 @@ export default function CanvasEditor({ model, art }) {
     }
   }, [model, art]);
 
-  // 🎨 Apply tint filters whenever colors change
+  /* ======================================
+     🎨 Tint filters
+  ====================================== */
   useEffect(() => {
     const c = canvas.current;
     if (!c) return;
@@ -133,33 +130,35 @@ export default function CanvasEditor({ model, art }) {
       img.filters = [
         new fabric.Image.filters.BlendColor({
           color,
-          mode: "multiply", // natural dark blending
-          alpha: strength,   // lower alpha preserves luminance
+          mode: "multiply",
+          alpha: strength,
         }),
       ];
       img.applyFilters();
     };
 
-    applyTint(baseRef.current, colors.base, 0.9); // soft for base (keep shadows)
+    applyTint(baseRef.current, colors.base, 0.9);
     applyTint(layerRefs.current[0], colors.layer1, 0.8);
     applyTint(layerRefs.current[1], colors.layer2, 0.8);
 
     c.renderAll();
   }, [colors]);
 
-  // 🎛️ UI controls
+  /* ======================================
+     🎛️ UI controls
+  ====================================== */
   const handleColorChange = (key, value) =>
     setColors((prev) => ({ ...prev, [key]: value }));
 
   return (
     <div className="flex flex-col items-center justify-center w-full">
       {/* Canvas */}
-      <div className="relative w-[600px] h-[600px] border rounded-lg shadow-lg mb-6 bg-white">
-        <canvas ref={canvasRef} className="absolute top-0 left-0" />
+      <div className="relative w-full max-w-[600px] aspect-square border rounded-lg shadow-lg mb-6 bg-white">
+        <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" />
       </div>
 
       {/* Tint controls */}
-      <div className="flex flex-row gap-8">
+      <div className="flex flex-row gap-8 flex-wrap justify-center">
         <div className="flex flex-col items-center">
           <label className="text-sm text-gray-600 mb-1">Base</label>
           <input

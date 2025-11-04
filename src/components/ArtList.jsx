@@ -1,4 +1,4 @@
-export default function ArtList({ arts, selectedArt, setSelectedArt }) {
+/*export default function ArtList({ arts, selectedArt, setSelectedArt }) {
   return (
     <section className="bg-white p-4 rounded-xl shadow flex flex-col">
       <h2 className="font-semibold mb-3 text-center">Artes</h2>
@@ -25,4 +25,25 @@ export default function ArtList({ arts, selectedArt, setSelectedArt }) {
       </div>
     </section>
   );
+}*/
+
+
+export default function ArtList({ arts, selectedArt, setSelectedArt }) {
+  return (
+    <div className="flex flex-col">
+      <select
+        className="border rounded-lg p-2 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={selectedArt}
+        onChange={(e) => setSelectedArt(e.target.value)}
+      >
+        <option value="">Selecione uma arte</option>
+        {arts.map((a) => (
+          <option key={a.id} value={a.id}>
+            {a.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }
+
