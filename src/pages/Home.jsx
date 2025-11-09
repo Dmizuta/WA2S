@@ -20,7 +20,7 @@ export default function Home() {
           const startY = window.scrollY;
           const targetY = section.getBoundingClientRect().top + window.scrollY;
           const distance = targetY - startY;
-          const duration = 2000; // milliseconds
+          const duration = 100; // milliseconds
           let startTime = null;
 
           function animation(currentTime) {
@@ -46,7 +46,7 @@ export default function Home() {
       };
 
       // short delay ensures DOM is ready before scroll trigger
-      setTimeout(scrollTo, 200);
+      setTimeout(scrollTo, 100);
     }
   }, [location]);
 

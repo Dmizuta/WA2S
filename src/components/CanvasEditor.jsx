@@ -1,4 +1,6 @@
-// src/components/CanvasEditor.jsx
+// ========================
+// ✅ CanvasEditor.jsx
+// ========================
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric-pure-browser";
 import { fabricData } from "../data/fabricData";
@@ -7,19 +9,20 @@ export default function CanvasEditor({ model, art }) {
   const canvasRef = useRef(null);
   const canvas = useRef(null);
 
-  // Refs for images
   const baseRef = useRef(null);
   const layerRefs = useRef([]);
 
+  const sanitizeColor = (color) => {
+    if (color.length === 9) return color.slice(0, 7);
+    return color;
+  };
+
   const [colors, setColors] = useState({
-    base: "#0e9420ff",
+    base: "#0e9420",
     layer1: "#00aaff",
     layer2: "#ff0000",
   });
 
-  /* ======================================
-     🧱 Initialize responsive Fabric canvas
-  ====================================== */
   useEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
@@ -30,10 +33,10 @@ export default function CanvasEditor({ model, art }) {
     });
     canvas.current = fabricCanvas;
 
-    // initial sizing
     const resizeCanvas = () => {
       const containerWidth = el.parentElement.offsetWidth;
-      const size = Math.min(containerWidth, 600); // cap at 600px
+      const maxSize = window.innerWidth >= 1024 ? 800 : window.innerWidth >= 768 ? 700 : 500;
+      const size = Math.min(containerWidth, maxSize);
       fabricCanvas.setWidth(size);
       fabricCanvas.setHeight(size);
       fabricCanvas.calcOffset();
@@ -45,14 +48,15 @@ export default function CanvasEditor({ model, art }) {
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      fabricCanvas.dispose();
+      try {
+        fabricCanvas.dispose();
+      } catch (err) {
+        console.error("Canvas dispose failed:", err);
+      }
       canvas.current = null;
     };
   }, []);
 
-  /* ======================================
-     🖼️ Load model + art layers responsively
-  ====================================== */
   useEffect(() => {
     const c = canvas.current;
     if (!c) return;
@@ -74,53 +78,46 @@ export default function CanvasEditor({ model, art }) {
     }
     if (!modelData) return;
 
-    // helper: scale image to fit current canvas width
     const scaleToCanvas = (img) => {
       const cw = c.getWidth();
-      img.scaleToWidth(cw * 0.9); // a bit of margin
-      img.set({ left: cw / 2, top: c.getHeight() / 2, originX: "center", originY: "center" });
+      const ch = c.getHeight();
+      const scale = Math.min(cw / img.width, ch / img.height) * 0.95;
+      img.scale(scale);
+      img.set({
+        left: cw / 2,
+        top: ch / 2,
+        originX: "center",
+        originY: "center",
+      });
     };
 
-    // 🧱 Base image
     if (modelData.img) {
-      fabric.Image.fromURL(
-        modelData.img,
-        (img) => {
-          scaleToCanvas(img);
-          img.selectable = false;
-          c.add(img);
-          baseRef.current = img;
-          c.renderAll();
-        },
-        { crossOrigin: "anonymous" }
-      );
+      fabric.Image.fromURL(modelData.img, (img) => {
+        scaleToCanvas(img);
+        img.selectable = false;
+        c.add(img);
+        baseRef.current = img;
+        c.renderAll();
+      }, { crossOrigin: "anonymous" });
     }
 
-    // 🖌 Art layers
     if (art && categoryKey) {
       const modelArts = fabricData[categoryKey].arts[model];
       const selectedArt = modelArts?.find((a) => a.id === art);
       if (!selectedArt?.layers) return;
 
       selectedArt.layers.forEach((path, i) => {
-        fabric.Image.fromURL(
-          path,
-          (img) => {
-            scaleToCanvas(img);
-            img.selectable = false;
-            c.add(img);
-            layerRefs.current[i] = img;
-            c.renderAll();
-          },
-          { crossOrigin: "anonymous" }
-        );
+        fabric.Image.fromURL(path, (img) => {
+          scaleToCanvas(img);
+          img.selectable = false;
+          c.add(img);
+          layerRefs.current[i] = img;
+          c.renderAll();
+        }, { crossOrigin: "anonymous" });
       });
     }
   }, [model, art]);
 
-  /* ======================================
-     🎨 Tint filters
-  ====================================== */
   useEffect(() => {
     const c = canvas.current;
     if (!c) return;
@@ -129,10 +126,10 @@ export default function CanvasEditor({ model, art }) {
       if (!img) return;
       img.filters = [
         new fabric.Image.filters.BlendColor({
-          color,
+          color: sanitizeColor(color),
           mode: "multiply",
           alpha: strength,
-        }),
+        })
       ];
       img.applyFilters();
     };
@@ -144,50 +141,26 @@ export default function CanvasEditor({ model, art }) {
     c.renderAll();
   }, [colors]);
 
-  /* ======================================
-     🎛️ UI controls
-  ====================================== */
   const handleColorChange = (key, value) =>
-    setColors((prev) => ({ ...prev, [key]: value }));
+    setColors((prev) => ({ ...prev, [key]: sanitizeColor(value) }));
 
   return (
-    <div className="flex flex-col items-center justify-center w-full">
-      {/* Canvas */}
-      <div className="relative w-full max-w-[600px] aspect-square border rounded-lg shadow-lg mb-6 bg-white">
+    <div className="pl-0 sm:pl-4 md:pl-12 lg:pl-24 w-full">
+      <div className="relative w-full max-w-[90vw] sm:max-w-[500px] md:max-w-[700px] lg:max-w-[800px] aspect-square border rounded-lg shadow-lg mb-6 bg-white">
         <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" />
       </div>
-
-      {/* Tint controls */}
       <div className="flex flex-row gap-8 flex-wrap justify-center">
-        <div className="flex flex-col items-center">
-          <label className="text-sm text-gray-600 mb-1">Base</label>
-          <input
-            type="color"
-            value={colors.base}
-            onChange={(e) => handleColorChange("base", e.target.value)}
-            className="w-10 h-10 border rounded cursor-pointer"
-          />
-        </div>
-
-        <div className="flex flex-col items-center">
-          <label className="text-sm text-gray-600 mb-1">Layer 1</label>
-          <input
-            type="color"
-            value={colors.layer1}
-            onChange={(e) => handleColorChange("layer1", e.target.value)}
-            className="w-10 h-10 border rounded cursor-pointer"
-          />
-        </div>
-
-        <div className="flex flex-col items-center">
-          <label className="text-sm text-gray-600 mb-1">Layer 2</label>
-          <input
-            type="color"
-            value={colors.layer2}
-            onChange={(e) => handleColorChange("layer2", e.target.value)}
-            className="w-10 h-10 border rounded cursor-pointer"
-          />
-        </div>
+        {["base", "layer1", "layer2"].map((key) => (
+          <div className="flex flex-col items-center" key={key}>
+            <label className="text-sm text-gray-600 mb-1 capitalize">{key}</label>
+            <input
+              type="color"
+              value={sanitizeColor(colors[key])}
+              onChange={(e) => handleColorChange(key, e.target.value)}
+              className="w-10 h-10 border rounded cursor-pointer"
+            />
+          </div>
+        ))}
       </div>
     </div>
   );
