@@ -47,43 +47,51 @@ export default function MonteFabric() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Header />
-      <main className="flex flex-col md:flex-row flex-wrap justify-center items-start gap-6 p-4 md:p-10 mt-[80px]">
-        <section className="flex-1 flex flex-col gap-4 md:max-w-[500px]">
-          <div className="bg-white rounded-xl shadow p-4">
-            <h2 className="font-semibold mb-2 text-center">Modelos</h2>
-            <ModelSelector models={models} selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
-          </div>
-          <div className="bg-white rounded-xl shadow p-4">
-            <h2 className="font-semibold mb-2 text-center">Artes</h2>
-            <ArtList arts={arts} selectedArt={selectedArt} setSelectedArt={setSelectedArt} />
-          </div>
-        </section>
+     <main className="flex flex-col md:grid md:grid-cols-12 gap-6 p-4 md:p-10 pt-6 md:pt-8">
 
-        <section className="flex-1 flex flex-col items-center w-full md:max-w-[600px]">
-          <h2 className="text-gray-400 text-sm md:text-base mb-2">
-            {product ? `${product.category} – ${product.model}` : "Pré-visualização"}
-          </h2>
-          <CanvasEditor baseImage={product?.image} model={selectedModel} art={selectedArt} />
-          <div className="mt-10 md:mt-12">
-            <button onClick={handleReturn} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-              Retornar
-            </button>
-          </div>
-        </section>
+  {/* LEFT – dropdowns */}
+  <section className="md:col-span-3 flex flex-col gap-4">
+    <div className="bg-white rounded-xl shadow p-4">
+      <h2 className="font-semibold mb-2 text-center">Modelos</h2>
+      <ModelSelector models={models} selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
+    </div>
+    <div className="bg-white rounded-xl shadow p-4">
+      <h2 className="font-semibold mb-2 text-center">Artes</h2>
+      <ArtList arts={arts} selectedArt={selectedArt} setSelectedArt={setSelectedArt} />
+    </div>
+  </section>
 
-        <section className="w-full max-w-3xl flex flex-col gap-4">
-          <button className="bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
-            Orçamento
-          </button>
-          <div className="bg-white p-4 rounded-xl shadow flex flex-col items-center justify-center">
-            <h2 className="font-semibold mb-2 text-center">Envie seu logo</h2>
-            <UploadLogo />
-          </div>
-          <button className="bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition">
-            WhatsApp
-          </button>
-        </section>
-      </main>
+  {/* CENTER – canvas */}
+  <section className="md:col-span-6 flex flex-col items-center">
+    <h2 className="text-gray-400 text-sm md:text-base mb-2">
+      {product ? `${product.category} – ${product.model}` : "Pré-visualização"}
+    </h2>
+    <CanvasEditor baseImage={product?.image} model={selectedModel} art={selectedArt} />
+    <div className="mt-10 md:mt-12">
+      <button
+        onClick={handleReturn}
+        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+      >
+        Retornar
+      </button>
+    </div>
+  </section>
+
+  {/* RIGHT – buttons */}
+  <section className="md:col-span-3 flex flex-col gap-4">
+    <button className="bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+      Orçamento
+    </button>
+    <div className="bg-white p-4 rounded-xl shadow flex flex-col items-center justify-center">
+      <h2 className="font-semibold mb-2 text-center">Envie seu logo</h2>
+      <UploadLogo />
+    </div>
+    <button className="bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition">
+      WhatsApp
+    </button>
+  </section>
+</main>
+
       <Footer />
     </div>
   );
