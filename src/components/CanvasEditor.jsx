@@ -1,5 +1,5 @@
 // ========================
-// ✅ CanvasEditor.jsx (responsive grow + strict centering + ResizeObserver)
+// ✅ CanvasEditor.jsx (responsive grow + strict centering + ResizeObserver + Size Control)
 // ========================
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric-pure-browser";
@@ -12,13 +12,18 @@ export default function CanvasEditor({ model, art }) {
   const baseRef = useRef(null);
   const layerRefs = useRef([]);
 
-  const sanitizeColor = (color) => (color?.length === 9 ? color.slice(0, 7) : color);
+  const sanitizeColor = (color) =>
+    color?.length === 9 ? color.slice(0, 7) : color;
 
   const [colors, setColors] = useState({
     base: "#0e9420",
     layer1: "#00aaff",
     layer2: "#ff0000",
   });
+
+  // 🔧 Size control state + ref (for React UI + Fabric logic)
+  const [scalePercent, setScalePercent] = useState(100);
+  const scalePercentRef = useRef(100);
 
   // Helper: fit + center an object using its natural size
   const fitAndCenter = (c, obj) => {
@@ -31,8 +36,15 @@ export default function CanvasEditor({ model, art }) {
 
     if (!natW || !natH) return;
 
-    const scale = Math.min(cw / natW, ch / natH) * 0.95;
-    obj.scale(scale);
+    // Base scale to fit inside canvas
+    const baseScale = Math.min(cw / natW, ch / natH) * 0.95;
+    obj.__baseScale = baseScale;
+
+    // Final scale = baseScale * user factor (50%–150%)
+    const userFactor = (scalePercentRef.current || 100) / 100;
+    const finalScale = baseScale * userFactor;
+
+    obj.scale(finalScale);
     obj.set({
       left: cw / 2,
       top: ch / 2,
@@ -67,7 +79,7 @@ export default function CanvasEditor({ model, art }) {
       c.setHeight(size);
       c.calcOffset();
 
-      // Refit + center all existing objects
+      // Refit + center all existing objects, respecting current scalePercent
       c.getObjects().forEach((obj) => fitAndCenter(c, obj));
       c.renderAll();
     };
@@ -130,10 +142,10 @@ export default function CanvasEditor({ model, art }) {
           img.selectable = false;
           img.evented = false;
 
-          c.add(img);
-          fitAndCenter(c, img);
+          canvas.current.add(img);
+          fitAndCenter(canvas.current, img);
           baseRef.current = img;
-          c.renderAll();
+          canvas.current.renderAll();
         },
         { crossOrigin: "anonymous" }
       );
@@ -153,10 +165,10 @@ export default function CanvasEditor({ model, art }) {
               img.selectable = false;
               img.evented = false;
 
-              c.add(img);
-              fitAndCenter(c, img);
+              canvas.current.add(img);
+              fitAndCenter(canvas.current, img);
               layerRefs.current[i] = img;
-              c.renderAll();
+              canvas.current.renderAll();
             },
             { crossOrigin: "anonymous" }
           );
@@ -194,18 +206,44 @@ export default function CanvasEditor({ model, art }) {
   const handleColorChange = (key, value) =>
     setColors((prev) => ({ ...prev, [key]: sanitizeColor(value) }));
 
+  /* ======================================
+     📏 Size Control Handler
+  ====================================== */
+  const handleScaleChange = (value) => {
+    const c = canvas.current;
+    if (!c) return;
+
+    scalePercentRef.current = value;
+    setScalePercent(value);
+
+    const factor = value / 100;
+
+    c.getObjects().forEach((obj) => {
+      const baseScale = obj.__baseScale || obj.scaleX || 1;
+      obj.scale(baseScale * factor);
+      obj.setCoords();
+    });
+
+    c.requestRenderAll();
+  };
+
   return (
     <div className="w-full flex flex-col items-center">
-      {/* IMPORTANT: no max-w cap here; column width controls size */}
+      {/* Canvas container */}
       <div className="relative w-full aspect-square max-h-[70vh] md:max-h-[60vh] lg:max-h-[55vh] border rounded-lg shadow-lg mb-4 bg-white flex items-center justify-center">
-
-        <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" />
+        <canvas
+          ref={canvasRef}
+          className="absolute top-0 left-0 w-full h-full"
+        />
       </div>
 
+      {/* Color pickers */}
       <div className="flex flex-row gap-8 flex-wrap justify-center">
         {["base", "layer1", "layer2"].map((key) => (
           <div className="flex flex-col items-center" key={key}>
-            <label className="text-sm text-gray-600 mb-1 capitalize">{key}</label>
+            <label className="text-sm text-gray-600 mb-1 capitalize">
+              {key}
+            </label>
             <input
               type="color"
               value={sanitizeColor(colors[key])}
@@ -214,6 +252,20 @@ export default function CanvasEditor({ model, art }) {
             />
           </div>
         ))}
+      </div>
+
+      {/* Size slider */}
+      <div className="mt-6 flex flex-col items-center">
+        <label className="text-sm text-gray-600 mb-1">Size</label>
+        <input
+          type="range"
+          min={50}
+          max={150}
+          value={scalePercent}
+          onChange={(e) => handleScaleChange(Number(e.target.value))}
+          className="w-48"
+        />
+        <span className="text-xs mt-1">{scalePercent}%</span>
       </div>
     </div>
   );
