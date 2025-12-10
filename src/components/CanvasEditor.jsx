@@ -1,5 +1,5 @@
 // ========================
-// ✅ CanvasEditor.jsx (responsive grow + strict centering + ResizeObserver + Size Control)
+// ✅ CanvasEditor.jsx (responsive grow + strict centering + ResizeObserver + Size Control v2)
 // ========================
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric-pure-browser";
@@ -40,7 +40,7 @@ export default function CanvasEditor({ model, art }) {
     const baseScale = Math.min(cw / natW, ch / natH) * 0.95;
     obj.__baseScale = baseScale;
 
-    // Final scale = baseScale * user factor (50%–150%)
+    // Final scale = baseScale * user factor (50%–300%)
     const userFactor = (scalePercentRef.current || 100) / 100;
     const finalScale = baseScale * userFactor;
 
@@ -72,7 +72,8 @@ export default function CanvasEditor({ model, art }) {
       if (!container) return;
 
       const containerWidth = container.clientWidth;
-      const maxByHeight = Math.floor(window.innerHeight * 0.8);
+      // 🔎 Allow canvas to be as tall as 90% of viewport height
+      const maxByHeight = Math.floor(window.innerHeight * 0.9);
       const size = Math.min(containerWidth, maxByHeight);
 
       c.setWidth(size);
@@ -229,8 +230,8 @@ export default function CanvasEditor({ model, art }) {
 
   return (
     <div className="w-full flex flex-col items-center">
-      {/* Canvas container */}
-      <div className="relative w-full aspect-square max-h-[70vh] md:max-h-[60vh] lg:max-h-[55vh] border rounded-lg shadow-lg mb-4 bg-white flex items-center justify-center">
+      {/* Canvas container: bigger visual area, but still constrained by viewport */}
+      <div className="relative w-full aspect-square max-h-[80vh] border rounded-lg shadow-lg mb-4 bg-white flex items-center justify-center">
         <canvas
           ref={canvasRef}
           className="absolute top-0 left-0 w-full h-full"
@@ -260,7 +261,7 @@ export default function CanvasEditor({ model, art }) {
         <input
           type="range"
           min={50}
-          max={150}
+          max={300}   // 🔼 now you can zoom a lot more in
           value={scalePercent}
           onChange={(e) => handleScaleChange(Number(e.target.value))}
           className="w-48"
