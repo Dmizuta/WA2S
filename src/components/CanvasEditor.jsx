@@ -1,5 +1,7 @@
 // ========================
-// ✅ CanvasEditor.jsx (responsive grow + strict centering + ResizeObserver + Size Control v2)
+// ✅ CanvasEditor.jsx (Fix: size Fabric canvas from the REAL wrapper box)
+// - Uses wrapperRef + getBoundingClientRect()
+// - Keeps CSS size == Fabric buffer size
 // ========================
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric-pure-browser";
@@ -7,6 +9,7 @@ import { fabricData } from "../data/fabricData";
 
 export default function CanvasEditor({ model, art }) {
   const canvasRef = useRef(null);
+  const wrapperRef = useRef(null); // ✅ new: real container
   const canvas = useRef(null);
 
   const baseRef = useRef(null);
@@ -21,13 +24,13 @@ export default function CanvasEditor({ model, art }) {
     layer2: "#ff0000",
   });
 
-  // 🔧 Size control state + ref (for React UI + Fabric logic)
   const [scalePercent, setScalePercent] = useState(100);
   const scalePercentRef = useRef(100);
 
   // Helper: fit + center an object using its natural size
   const fitAndCenter = (c, obj) => {
     if (!c || !obj) return;
+
     const cw = c.getWidth();
     const ch = c.getHeight();
 
@@ -36,15 +39,13 @@ export default function CanvasEditor({ model, art }) {
 
     if (!natW || !natH) return;
 
-    // Base scale to fit inside canvas
+    // ✅ Fit ~95% of the REAL Fabric canvas size
     const baseScale = Math.min(cw / natW, ch / natH) * 0.95;
     obj.__baseScale = baseScale;
 
-    // Final scale = baseScale * user factor (50%–300%)
     const userFactor = (scalePercentRef.current || 100) / 100;
-    const finalScale = baseScale * userFactor;
+    obj.scale(baseScale * userFactor);
 
-    obj.scale(finalScale);
     obj.set({
       left: cw / 2,
       top: ch / 2,
@@ -59,7 +60,8 @@ export default function CanvasEditor({ model, art }) {
   ====================================== */
   useEffect(() => {
     const el = canvasRef.current;
-    if (!el) return;
+    const wrapper = wrapperRef.current;
+    if (!el || !wrapper) return;
 
     const c = new fabric.Canvas(el, {
       backgroundColor: "#f8f8f8",
@@ -68,31 +70,36 @@ export default function CanvasEditor({ model, art }) {
     canvas.current = c;
 
     const resizeCanvas = () => {
-      const container = el.parentElement;
-      if (!container) return;
+      const rect = wrapper.getBoundingClientRect();
 
-      const containerWidth = container.clientWidth;
-      // 🔎 Allow canvas to be as tall as 90% of viewport height
-      const maxByHeight = Math.floor(window.innerHeight * 0.9);
-      const size = Math.min(containerWidth, maxByHeight);
+      // ✅ REAL rendered pixels
+      const size = Math.floor(Math.min(rect.width, rect.height));
+
+      // Guard
+      if (!size || size < 50) return;
+
+      // ✅ Keep canvas element CSS size in sync with Fabric buffer size
+      el.style.width = `${size}px`;
+      el.style.height = `${size}px`;
 
       c.setWidth(size);
       c.setHeight(size);
       c.calcOffset();
 
-      // Refit + center all existing objects, respecting current scalePercent
+      // Refit all objects (respecting slider)
       c.getObjects().forEach((obj) => fitAndCenter(c, obj));
-      c.renderAll();
+      c.requestRenderAll();
+
+      // 🔍 Optional debug
+      // console.log("WRAPPER:", Math.round(rect.width), Math.round(rect.height), "=> FABRIC:", c.getWidth(), c.getHeight());
     };
 
-    // ✅ Observe parent container directly
+    // ✅ Observe the wrapper itself (not canvas parent guessing)
     const observer = new ResizeObserver(resizeCanvas);
-    observer.observe(el.parentElement);
+    observer.observe(wrapper);
 
-    // Fallback: window resize listener
     window.addEventListener("resize", resizeCanvas);
-
-    resizeCanvas(); // run once on mount
+    resizeCanvas();
 
     return () => {
       observer.disconnect();
@@ -123,6 +130,7 @@ export default function CanvasEditor({ model, art }) {
     // find modelData + categoryKey
     let categoryKey = null;
     let modelData = null;
+
     for (const key in fabricData) {
       const found = fabricData[key].models.find((m) => m.id === model);
       if (found) {
@@ -143,19 +151,20 @@ export default function CanvasEditor({ model, art }) {
           img.selectable = false;
           img.evented = false;
 
-          canvas.current.add(img);
-          fitAndCenter(canvas.current, img);
+          c.add(img);
+          fitAndCenter(c, img);
           baseRef.current = img;
-          canvas.current.renderAll();
+          c.requestRenderAll();
         },
         { crossOrigin: "anonymous" }
       );
     }
 
-    // Art layers (optional)
+    // Art layers
     if (art && categoryKey) {
       const modelArts = fabricData[categoryKey]?.arts?.[model];
       const selectedArt = modelArts?.find((a) => a.id === art);
+
       if (selectedArt?.layers?.length) {
         selectedArt.layers.forEach((path, i) => {
           fabric.Image.fromURL(
@@ -166,10 +175,10 @@ export default function CanvasEditor({ model, art }) {
               img.selectable = false;
               img.evented = false;
 
-              canvas.current.add(img);
-              fitAndCenter(canvas.current, img);
+              c.add(img);
+              fitAndCenter(c, img);
               layerRefs.current[i] = img;
-              canvas.current.renderAll();
+              c.requestRenderAll();
             },
             { crossOrigin: "anonymous" }
           );
@@ -201,7 +210,7 @@ export default function CanvasEditor({ model, art }) {
     applyTint(layerRefs.current[0], colors.layer1, 0.8);
     applyTint(layerRefs.current[1], colors.layer2, 0.8);
 
-    c.renderAll();
+    c.requestRenderAll();
   }, [colors]);
 
   const handleColorChange = (key, value) =>
@@ -230,12 +239,13 @@ export default function CanvasEditor({ model, art }) {
 
   return (
     <div className="w-full flex flex-col items-center">
-      {/* Canvas container: bigger visual area, but still constrained by viewport */}
-      <div className="relative w-full aspect-square max-h-[80vh] border rounded-lg shadow-lg mb-4 bg-white flex items-center justify-center">
-        <canvas
-          ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full"
-        />
+      {/* ✅ wrapperRef is the REAL sizing source */}
+      <div
+        ref={wrapperRef}
+        className="relative w-full aspect-square max-h-[80vh] border rounded-lg shadow-lg mb-4 bg-white flex items-center justify-center"
+      >
+        {/* ✅ no w-full/h-full here */}
+        <canvas ref={canvasRef} className="absolute top-0 left-0" />
       </div>
 
       {/* Color pickers */}
@@ -261,7 +271,7 @@ export default function CanvasEditor({ model, art }) {
         <input
           type="range"
           min={50}
-          max={300}   // 🔼 now you can zoom a lot more in
+          max={300}
           value={scalePercent}
           onChange={(e) => handleScaleChange(Number(e.target.value))}
           className="w-48"
